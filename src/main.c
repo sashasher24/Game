@@ -212,7 +212,7 @@ int main() {
     fprintf(stderr, "create renderer failed: %s\n", SDL_GetError());
     return 1;
   }
-  SDL_Surface *menuSurface = IMG_Load("./resource/start_page.jpg");
+  SDL_Surface *menuSurface = IMG_Load("./resource/game_menu.jpg");
   if (!menuSurface) {
     printf("cannot find menu\n");
     return 1;
