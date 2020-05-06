@@ -15,7 +15,7 @@
 #include <SDL2_image/SDL_image.h>
 
 typedef struct {
-  SDL_Rect draw_rect;    // dimensions of button
+  SDL_Rect draw_rect;
   struct {
     Uint8 r, g, b, a;
   } colour;
@@ -29,10 +29,10 @@ typedef struct {
   int walking;
   
   SDL_Texture *sheetTexture;
-} Man;
+} Rocket;
 
 typedef struct {
   float x, y, dy;
-} Bullet;
+} Object;
 
 #endif

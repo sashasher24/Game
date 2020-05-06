@@ -4,7 +4,7 @@ int done;
 
 SDL_Texture *bulletTexture;
 SDL_Texture *backgroundTexture;
-Bullet *bullets[MAX_BULLETS] = { NULL };
+Object *objects[MAX_BULLETS] = { NULL };
 
 int globalTime = 0;
 
@@ -34,7 +34,7 @@ static bool button(SDL_Renderer *r, button_t *btn) {
 void addBullet(float x, float y, float dy) {
   int found = -1;
   for (int i = 0; i < MAX_BULLETS; i++) {
-    if (bullets[i] == NULL) {
+    if (objects[i] == NULL) {
       found = i;
       break;
     }
@@ -42,21 +42,21 @@ void addBullet(float x, float y, float dy) {
 
   if (found >= 0) {
     int i = found;
-    bullets[i] = malloc(sizeof(Bullet));
-    bullets[i]->x = x;
-    bullets[i]->y = y;
-    bullets[i]->dy = dy;
+    objects[i] = malloc(sizeof(Object));
+    objects[i]->x = x;
+    objects[i]->y = y;
+    objects[i]->dy = dy;
   }
 }
 
 void removeBullet(int i) {
-  if (bullets[i]) {
-    free(bullets[i]);
-    bullets[i] = NULL;
+  if (objects[i]) {
+    free(objects[i]);
+    objects[i] = NULL;
   }
 }
 
-int processEvents(SDL_Window *window, Man *man, Man *dog) {
+int processEvents(SDL_Window *window, Rocket *rocket, Rocket *dog) {
   SDL_Event event;
   done = 0;
 
@@ -90,12 +90,10 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
     
   if (state[SDL_SCANCODE_LEFT]) {
     dog->x -= 3;
-    dog->walking = 1; 
     if (dog->x < 0) dog->x = WINDOW_WIDTH - 40;
   }
   if (state[SDL_SCANCODE_RIGHT]) {
     dog->x += 3;
-    dog->walking = 1;
     if (dog->x > WINDOW_WIDTH) dog->x = 0;
   }
   if (state[SDL_SCANCODE_UP]) {
@@ -104,7 +102,6 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
     }
     else {
       dog->y -= 3;
-      dog->walking = 1;
     }
   }
   if (state[SDL_SCANCODE_DOWN]) {
@@ -113,31 +110,29 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
     }
     else {
       dog->y += 3;
-      dog->walking = 1;
     }
   }
     
-  if (man->x >= -40) {
-    man->x += 1;
-    man->walking = 1;
+  if (rocket->x >= -40) {
+    rocket->x += 1;
   
     int k = rand() % 320;
     int m = rand() % 320;
     int h = rand() % 100;
     int t = rand() % 50;
       
-    if (man->x == k || man->x == m || man->x == h || man->x == t ) {
-      addBullet(man->x, man-> y+70, 3);
-      man->shooting = 1;
+    if (rocket->x == k || rocket->x == m || rocket->x == h || rocket->x == t ) {
+      addBullet(rocket->x, rocket-> y+70, 3);
+      rocket->shooting = 1;
     }
-    if (man->x == WINDOW_WIDTH + 40) {
-      man->x = -40;
+    if (rocket->x == WINDOW_WIDTH + 40) {
+      rocket->x = -40;
     }
   }
   return done;
 }
 
-void doRender(SDL_Renderer *renderer, Man *man, Man *dog) {
+void doRender(SDL_Renderer *renderer, Rocket *rocket, Rocket *dog) {
   SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
   
   SDL_RenderClear(renderer);
@@ -146,30 +141,30 @@ void doRender(SDL_Renderer *renderer, Man *man, Man *dog) {
   
   SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);
 
-  SDL_Rect rect = { man->x, man->y, 40, 50 };
-  SDL_RenderCopy(renderer, man->sheetTexture, NULL, &rect);
+  SDL_Rect rect = { rocket->x, rocket->y, 40, 50 };
+  SDL_RenderCopy(renderer, rocket->sheetTexture, NULL, &rect);
 
   SDL_Rect eRect = { dog->x, dog->y, 40, 60 };  
   SDL_RenderCopy(renderer, dog->sheetTexture, NULL, &eRect);
 
-  for (int i = 0; i < MAX_BULLETS; i++) if(bullets[i]) {
-    SDL_Rect rect = { bullets[i]->x, bullets[i]->y, 8, 8 };
+  for (int i = 0; i < MAX_BULLETS; i++) if(objects[i]) {
+    SDL_Rect rect = { objects[i]->x, objects[i]->y, 8, 8 };
     SDL_RenderCopy(renderer, bulletTexture, NULL, &rect);
   }
   
   SDL_RenderPresent(renderer);
 }
 
-void updateLogic(Man *dog) {	
+void updateLogic(Rocket *dog) {	
   for(int i = 0; i < MAX_BULLETS; i++) {
-    if(bullets[i]) {
-      bullets[i]->y += bullets[i]->dy; 
-      if(bullets[i]->x >= dog->x && bullets[i]->x <= dog->x+40 &&
-            bullets[i]->y >= dog->y && bullets[i]->y <= dog->y+60) {
+    if(objects[i]) {
+      objects[i]->y += objects[i]->dy; 
+      if(objects[i]->x >= dog->x && objects[i]->x <= dog->x+40 &&
+            objects[i]->y >= dog->y && objects[i]->y <= dog->y+60) {
         done = 1;
 	      printf("Game Over\n");
       }
-      if(bullets[i]->x == dog->x || bullets[i]->x > 1000) {
+      if(objects[i]->x == dog->x || objects[i]->x > 1000) {
         removeBullet(i);
       }
     }
@@ -239,11 +234,11 @@ int main() {
           
           SDL_Init(SDL_INIT_VIDEO);
           
-          Man man;
-          man.x = 50;
-          man.y = 0;
+          Rocket rocket;
+          rocket.x = 50;
+          rocket.y = 0;
           
-          Man dog;
+          Rocket dog;
           dog.x = 350;
           dog.y = 400;
   
@@ -260,7 +255,7 @@ int main() {
             printf("Cannot find sheet\n");
             return 1;
           }
-          man.sheetTexture = SDL_CreateTextureFromSurface(renderer, sheet);
+          rocket.sheetTexture = SDL_CreateTextureFromSurface(renderer, sheet);
           SDL_FreeSurface(sheet);
   
           sheet = IMG_Load("dog.png");
@@ -279,25 +274,25 @@ int main() {
           backgroundTexture = SDL_CreateTextureFromSurface(renderer, bg);
           SDL_FreeSurface(bg);
 
-          SDL_Surface *bullet = IMG_Load("bullet.png");
-          if (!bullet) {
-            printf("Cannot find bullet\n");
+          SDL_Surface *object = IMG_Load("object.png");
+          if (!object) {
+            printf("Cannot find object\n");
             return 1;
           }
-          bulletTexture = SDL_CreateTextureFromSurface(renderer, bullet);
-          SDL_FreeSurface(bullet);
+          bulletTexture = SDL_CreateTextureFromSurface(renderer, object);
+          SDL_FreeSurface(object);
           done = 0;
 
           while (!done) {
-            done = processEvents(window, &man, &dog);
+            done = processEvents(window, &rocket, &dog);
             updateLogic(&dog);
-            doRender(renderer, &man, &dog);
+            doRender(renderer, &rocket, &dog);
             SDL_Delay(10);
           }
   
           SDL_DestroyWindow(window);
           SDL_DestroyRenderer(renderer);
-          SDL_DestroyTexture(man.sheetTexture);
+          SDL_DestroyTexture(rocket.sheetTexture);
           SDL_DestroyTexture(backgroundTexture);
           SDL_DestroyTexture(bulletTexture);
           SDL_DestroyTexture(dog.sheetTexture);
