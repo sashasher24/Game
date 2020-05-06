@@ -1,45 +1,10 @@
-#include <SDL2/SDL.h>
-#include "SDL_image.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
-#define FALSE 0
-#define TRUE 1
-
-#define MAX_BULLETS 1000
-
-typedef struct {
-    SDL_Rect draw_rect;    // dimensions of button
-    struct {
-        Uint8 r, g, b, a;
-    } colour;
-
-    bool pressed;
-} button_t;
+#include "header.h"
 
 int done;
-
-typedef struct {
-  float x, y, dy;
-  short life;
-  char *name;
-  int currentSprite, walking, facingLeft, shooting, visible;
-  int alive;
-  
-  SDL_Texture *sheetTexture;
-} Man;
-
-typedef struct {
-  float x, y, dy;
-} Bullet;
 
 SDL_Texture *bulletTexture;
 SDL_Texture *backgroundTexture;
 Bullet *bullets[MAX_BULLETS] = { NULL };
-// Man enemy;
 
 int globalTime = 0;
 
@@ -218,10 +183,9 @@ void updateLogic(Man *dog) {
       //simple coll. detection
         
       if(bullets[i]->x >= dog->x && bullets[i]->x <= dog->x+40 &&
-       bullets[i]->y >= dog->y && bullets[i]->y <= dog->y+60)
-      {
-        done = 1;           // вот тут добавляем очки а не вот это гавно
-        printf("Game Over");
+       bullets[i]->y >= dog->y && bullets[i]->y <= dog->y+60) {
+        done = 1;
+	printf("Game Over");
       }
 
       
@@ -239,7 +203,7 @@ int main()
 int quit = 0;
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window *window = NULL;
-    window = SDL_CreateWindow("",350, 150, 200, 200,    SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("", 200, 150, 200, 200, SDL_WINDOW_SHOWN);
     if (window == NULL){
         fprintf(stderr, "create window failed: %s\n", SDL_GetError());
         return 1;   // 'error' return status is !0. 1 is good enough
@@ -263,7 +227,7 @@ int quit = 0;
     // button state - colour and rectangle
     button_t start_button = {
         .colour = { .r = 255, .g = 255, .b = 255, .a = 255, },
-        .draw_rect = { .x = 128, .y = 128, .w = 128, .h = 128 },
+        .draw_rect = { .x = 10, .y = 10, .w = 300, .h = 300 },
     };
 
     enum {
