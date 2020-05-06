@@ -2,7 +2,7 @@
 #define ENDGAME_HEADER
 
 #define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define WINDOW_HEIGHT 500
 #define FALSE 0
 #define TRUE 1
 #define MAX_BULLETS 1000

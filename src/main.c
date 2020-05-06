@@ -2,7 +2,6 @@
 
 int done;
 
-SDL_Texture *menu;
 SDL_Texture *objectTexture;
 SDL_Texture *backgroundTexture;
 Object *objects[MAX_BULLETS] = { NULL };
@@ -21,10 +20,7 @@ static void button_process_event(button_t *btn, const SDL_Event *ev) {
   }
 }
 
-static bool button(SDL_Renderer *r, button_t *btn) {
-//  SDL_SetRenderDrawColor(r, btn->colour.r, btn->colour.g, btn->colour.b, btn->colour.a);
-//  SDL_RenderFillRect(r, &btn->draw_rect);
-   SDL_RenderCopy(r, menu, NULL, NULL);
+static bool button(button_t *btn) {
    if (btn->pressed) {
     btn->pressed = FALSE;
     return TRUE;
@@ -90,31 +86,31 @@ int processEvents(SDL_Window *window, Rocket *rocket, Rocket *dog) {
   const Uint8 *state = SDL_GetKeyboardState(NULL);
     
   if (state[SDL_SCANCODE_LEFT]) {
-    dog->x -= 3;
-    if (dog->x < 0) dog->x = WINDOW_WIDTH - 40;
+    dog->x -= 2;
+    if (dog->x < -30) dog->x = WINDOW_WIDTH - 60;
   }
   if (state[SDL_SCANCODE_RIGHT]) {
-    dog->x += 3;
-    if (dog->x > WINDOW_WIDTH) dog->x = 0;
+    dog->x += 2;
+    if (dog->x > WINDOW_WIDTH) dog->x = -30;
   }
   if (state[SDL_SCANCODE_UP]) {
-    if (dog->y - 3 < 460) {
-      dog->y = 460;
+    if (dog->y - 2 < 405) {
+      dog->y = 405;
     }
     else {
-      dog->y -= 3;
+      dog->y -= 2;
     }
   }
   if (state[SDL_SCANCODE_DOWN]) {
-    if (dog->y + 3 + 60 > WINDOW_HEIGHT) {
-      dog->y = WINDOW_HEIGHT - 60;
+    if (dog->y + 2 + 40 > WINDOW_HEIGHT) {
+      dog->y = WINDOW_HEIGHT - 40;
     }
     else {
-      dog->y += 3;
+      dog->y += 2;
     }
   }
     
-  if (rocket->x >= -40) {
+  if (rocket->x >= -60) {
     rocket->x += 1;
   
     int k = rand() % 320;
@@ -126,7 +122,7 @@ int processEvents(SDL_Window *window, Rocket *rocket, Rocket *dog) {
       addBullet(rocket->x, rocket-> y+70, 3);
       rocket->shooting = 1;
     }
-    if (rocket->x == WINDOW_WIDTH + 40) {
+    if (rocket->x == WINDOW_WIDTH + 60) {
       rocket->x = -40;
     }
   }
@@ -142,14 +138,14 @@ void doRender(SDL_Renderer *renderer, Rocket *rocket, Rocket *dog) {
   
   SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);
 
-  SDL_Rect rect = { rocket->x, rocket->y, 40, 50 };
+  SDL_Rect rect = { rocket->x, rocket->y, 90, 70 };
   SDL_RenderCopy(renderer, rocket->sheetTexture, NULL, &rect);
 
-  SDL_Rect eRect = { dog->x, dog->y, 40, 60 };  
+  SDL_Rect eRect = { dog->x, dog->y, 60, 40 };  
   SDL_RenderCopy(renderer, dog->sheetTexture, NULL, &eRect);
 
   for (int i = 0; i < MAX_BULLETS; i++) if(objects[i]) {
-    SDL_Rect rect = { objects[i]->x, objects[i]->y, 8, 8 };
+    SDL_Rect rect = { objects[i]->x, objects[i]->y, 20, 20};
     SDL_RenderCopy(renderer, objectTexture, NULL, &rect);
   }
   
@@ -177,7 +173,12 @@ int main() {
   int quit = 0;
   SDL_Init(SDL_INIT_VIDEO);
   SDL_Window *window1 = NULL;
-  window1 = SDL_CreateWindow("", 200, 150, 200, 200, SDL_WINDOW_SHOWN);
+  window1 = SDL_CreateWindow("",
+			SDL_WINDOWPOS_UNDEFINED,
+			SDL_WINDOWPOS_UNDEFINED,
+			500,
+			500,
+			SDL_WINDOW_SHOWN);
   if (window1 == NULL){
     fprintf(stderr, "create window failed: %s\n", SDL_GetError());
     return 1;
@@ -190,12 +191,12 @@ int main() {
     fprintf(stderr, "create renderer failed: %s\n", SDL_GetError());
     return 1;
   }
-  SDL_Surface *menuSurface = IMG_Load("background.png");
+  SDL_Surface *menuSurface = IMG_Load("./resource/start_page.jpg");
   if (!menuSurface) {
     printf("cannot find menu\n");
     return 1;
   }
-  menu = SDL_CreateTextureFromSurface(renderer1, menuSurface);
+  SDL_Texture *menu = SDL_CreateTextureFromSurface(renderer1, menuSurface);
   SDL_FreeSurface(menuSurface);
 
   SDL_Rect rct;
@@ -205,8 +206,7 @@ int main() {
   rct.w = 600;
 
   button_t start_button = {
-//    .colour = { .r = 255, .g = 255, .b = 255, .a = 255, },
-    .draw_rect = { .x = 10, .y = 10, .w = 300, .h = 300 },
+    .draw_rect = { .x = 0, .y = 270, .w = 500, .h = 230 },
   };
 
   enum {
@@ -226,15 +226,13 @@ int main() {
       button_process_event(&start_button, &evt);
     }
 
-//    SDL_SetRenderDrawColor(renderer1, 255,0, 0, 255);
     SDL_RenderCopy(renderer1, menu, NULL, NULL);
-//    SDL_RenderClear(renderer1);
     SDL_RenderPresent(renderer1);
     if (state == STATE_IN_MENU) {
       state = STATE_IN_GAME;
             
     } else if (state == STATE_IN_GAME) {
-        if(button(renderer1, &start_button)) {
+        if(button(&start_button)) {
             
           SDL_DestroyWindow(window1);
           SDL_DestroyRenderer(renderer1);          
@@ -250,7 +248,7 @@ int main() {
           
           Rocket dog;
           dog.x = 350;
-          dog.y = 480;
+          dog.y = 420;
   
           window = SDL_CreateWindow("Game Window",
                                     SDL_WINDOWPOS_UNDEFINED,
@@ -260,7 +258,7 @@ int main() {
                                     0);
           renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   
-          SDL_Surface *sheet = IMG_Load("sheet.png");
+          SDL_Surface *sheet = IMG_Load("./resource/reketka.jpg");
           if (!sheet) {
             printf("Cannot find sheet\n");
             return 1;
@@ -268,7 +266,7 @@ int main() {
           rocket.sheetTexture = SDL_CreateTextureFromSurface(renderer, sheet);
           SDL_FreeSurface(sheet);
   
-          sheet = IMG_Load("dog.png");
+          sheet = IMG_Load("./resource/dog_UP.jpg");
           if (!sheet) {
             printf("Cannot find dog sheet\n");
             return 1;
@@ -276,7 +274,7 @@ int main() {
           dog.sheetTexture = SDL_CreateTextureFromSurface(renderer, sheet);
           SDL_FreeSurface(sheet);
 
-          SDL_Surface *bg = IMG_Load("back_game.png");
+          SDL_Surface *bg = IMG_Load("./resource/back_game.jpg");
           if (!sheet) {
             printf("Cannot find background\n");
             return 1;
@@ -284,7 +282,7 @@ int main() {
           backgroundTexture = SDL_CreateTextureFromSurface(renderer, bg);
           SDL_FreeSurface(bg);
 
-          SDL_Surface *object = IMG_Load("bullet.png");
+          SDL_Surface *object = IMG_Load("./resource/virus.jpeg");
           if (!object) {
             printf("Cannot find object\n");
             return 1;
