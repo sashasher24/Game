@@ -26,7 +26,7 @@ typedef struct {
 typedef struct {
   float x, y, dy;
   short life;
-  int walking;
+  int shooting;
   
   SDL_Texture *sheetTexture;
 } Rocket;

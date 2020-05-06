@@ -2,7 +2,8 @@
 
 int done;
 
-SDL_Texture *bulletTexture;
+SDL_Texture *menu;
+SDL_Texture *objectTexture;
 SDL_Texture *backgroundTexture;
 Object *objects[MAX_BULLETS] = { NULL };
 
@@ -21,10 +22,10 @@ static void button_process_event(button_t *btn, const SDL_Event *ev) {
 }
 
 static bool button(SDL_Renderer *r, button_t *btn) {
-  SDL_SetRenderDrawColor(r, btn->colour.r, btn->colour.g, btn->colour.b, btn->colour.a);
-  SDL_RenderFillRect(r, &btn->draw_rect);
-
-  if (btn->pressed) {
+//  SDL_SetRenderDrawColor(r, btn->colour.r, btn->colour.g, btn->colour.b, btn->colour.a);
+//  SDL_RenderFillRect(r, &btn->draw_rect);
+   SDL_RenderCopy(r, menu, NULL, NULL);
+   if (btn->pressed) {
     btn->pressed = FALSE;
     return TRUE;
   }
@@ -97,8 +98,8 @@ int processEvents(SDL_Window *window, Rocket *rocket, Rocket *dog) {
     if (dog->x > WINDOW_WIDTH) dog->x = 0;
   }
   if (state[SDL_SCANCODE_UP]) {
-    if (dog->y - 3 < 300){
-      dog->y = 300;
+    if (dog->y - 3 < 460) {
+      dog->y = 460;
     }
     else {
       dog->y -= 3;
@@ -149,7 +150,7 @@ void doRender(SDL_Renderer *renderer, Rocket *rocket, Rocket *dog) {
 
   for (int i = 0; i < MAX_BULLETS; i++) if(objects[i]) {
     SDL_Rect rect = { objects[i]->x, objects[i]->y, 8, 8 };
-    SDL_RenderCopy(renderer, bulletTexture, NULL, &rect);
+    SDL_RenderCopy(renderer, objectTexture, NULL, &rect);
   }
   
   SDL_RenderPresent(renderer);
@@ -181,6 +182,7 @@ int main() {
     fprintf(stderr, "create window failed: %s\n", SDL_GetError());
     return 1;
   }
+  
 
   SDL_Renderer *renderer1 = NULL;
   renderer1 = SDL_CreateRenderer(window1, -1, SDL_RENDERER_ACCELERATED);
@@ -188,6 +190,13 @@ int main() {
     fprintf(stderr, "create renderer failed: %s\n", SDL_GetError());
     return 1;
   }
+  SDL_Surface *menuSurface = IMG_Load("background.png");
+  if (!menuSurface) {
+    printf("cannot find menu\n");
+    return 1;
+  }
+  menu = SDL_CreateTextureFromSurface(renderer1, menuSurface);
+  SDL_FreeSurface(menuSurface);
 
   SDL_Rect rct;
   rct.x = 0 ;
@@ -196,7 +205,7 @@ int main() {
   rct.w = 600;
 
   button_t start_button = {
-    .colour = { .r = 255, .g = 255, .b = 255, .a = 255, },
+//    .colour = { .r = 255, .g = 255, .b = 255, .a = 255, },
     .draw_rect = { .x = 10, .y = 10, .w = 300, .h = 300 },
   };
 
@@ -217,8 +226,9 @@ int main() {
       button_process_event(&start_button, &evt);
     }
 
-    SDL_SetRenderDrawColor(renderer1, 255,0, 0, 255);
-    SDL_RenderClear(renderer1);
+//    SDL_SetRenderDrawColor(renderer1, 255,0, 0, 255);
+    SDL_RenderCopy(renderer1, menu, NULL, NULL);
+//    SDL_RenderClear(renderer1);
     SDL_RenderPresent(renderer1);
     if (state == STATE_IN_MENU) {
       state = STATE_IN_GAME;
@@ -240,7 +250,7 @@ int main() {
           
           Rocket dog;
           dog.x = 350;
-          dog.y = 400;
+          dog.y = 480;
   
           window = SDL_CreateWindow("Game Window",
                                     SDL_WINDOWPOS_UNDEFINED,
@@ -266,7 +276,7 @@ int main() {
           dog.sheetTexture = SDL_CreateTextureFromSurface(renderer, sheet);
           SDL_FreeSurface(sheet);
 
-          SDL_Surface *bg = IMG_Load("background.png");
+          SDL_Surface *bg = IMG_Load("back_game.png");
           if (!sheet) {
             printf("Cannot find background\n");
             return 1;
@@ -274,12 +284,12 @@ int main() {
           backgroundTexture = SDL_CreateTextureFromSurface(renderer, bg);
           SDL_FreeSurface(bg);
 
-          SDL_Surface *object = IMG_Load("object.png");
+          SDL_Surface *object = IMG_Load("bullet.png");
           if (!object) {
             printf("Cannot find object\n");
             return 1;
           }
-          bulletTexture = SDL_CreateTextureFromSurface(renderer, object);
+          objectTexture = SDL_CreateTextureFromSurface(renderer, object);
           SDL_FreeSurface(object);
           done = 0;
 
@@ -294,7 +304,7 @@ int main() {
           SDL_DestroyRenderer(renderer);
           SDL_DestroyTexture(rocket.sheetTexture);
           SDL_DestroyTexture(backgroundTexture);
-          SDL_DestroyTexture(bulletTexture);
+          SDL_DestroyTexture(objectTexture);
           SDL_DestroyTexture(dog.sheetTexture);
 
         }
