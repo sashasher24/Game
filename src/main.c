@@ -114,42 +114,26 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
         dog->walking = 1;
       }
     }
-
+    
     if (man->x >= -40) {
         man->x += 1;
         man->walking = 1;
-        if (man->x == 320) {
-            man->x = -40;
-        }
-    }
-   
-     if (state[SDL_SCANCODE_SPACE]) {
-      if (globalTime % 6 == 0) {
-        if (man->currentSprite == 4)
-          man->currentSprite = 5;
-        else {
-          man->currentSprite = 4;
-        }
+    
+        int k = rand() % 320;
+        int m = rand() % 320;
+        int h = rand() % 100;
+        int t = rand() % 50;
+        
+      if (man->x == k || man->x == m || man->x == h || man->x == t ) {
           addBullet(man->x, man-> y+70, 3);
+          man->shooting = 1;
       }
-      man->shooting = 1;
+      if (man->x == WINDOW_WIDTH + 40){
+          man->x = -40;
+      }
     }
-    else {
-      man->currentSprite = 4;
-      man->shooting = 0;
-    }
-  
-  
-// if(state[SDL_SCANCODE_UP] && !man->dy)
-//   {
-//     man->dy = -8;
-//   }
-//   if(state[SDL_SCANCODE_DOWN])
-//   {
-//     //man->y += 10;
-//   }
-  
-  return done;
+
+    return done;
 }
 
 void doRender(SDL_Renderer *renderer, Man *man, Man *dog)
@@ -258,7 +242,7 @@ int main()
   SDL_FreeSurface(sheet);
   
   //load enemy
-  sheet = IMG_Load("badman_sheet.png");
+  sheet = IMG_Load("dog.png");
   if(!sheet)
   {
     printf("Cannot find dog sheet\n");
