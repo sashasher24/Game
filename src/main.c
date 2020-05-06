@@ -1,11 +1,25 @@
 #include <SDL2/SDL.h>
 #include "SDL_image.h"
 #include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
+#define FALSE 0
+#define TRUE 1
 
 #define MAX_BULLETS 1000
+
+typedef struct {
+    SDL_Rect draw_rect;    // dimensions of button
+    struct {
+        Uint8 r, g, b, a;
+    } colour;
+
+    bool pressed;
+} button_t;
+
 
 typedef struct {
   float x, y, dy;
@@ -27,6 +41,32 @@ Bullet *bullets[MAX_BULLETS] = { NULL };
 // Man enemy;
 
 int globalTime = 0;
+
+static void button_process_event(button_t *btn, const SDL_Event *ev) {
+    // react on mouse click within button rectangle by setting 'pressed'
+    if(ev->type == SDL_MOUSEBUTTONDOWN) {
+        if(ev->button.button == SDL_BUTTON_LEFT &&
+                ev->button.x >= btn->draw_rect.x &&
+                ev->button.x <= (btn->draw_rect.x + btn->draw_rect.w) &&
+                ev->button.y >= btn->draw_rect.y &&
+                ev->button.y <= (btn->draw_rect.y + btn->draw_rect.h)) {
+            btn->pressed = TRUE;
+        }
+    }
+}
+
+static bool button(SDL_Renderer *r, button_t *btn) {
+    // draw button
+    SDL_SetRenderDrawColor(r, btn->colour.r, btn->colour.g, btn->colour.b, btn->colour.a);
+    SDL_RenderFillRect(r, &btn->draw_rect);
+
+    // if button press detected - reset it so it wouldn't trigger twice
+    if(btn->pressed) {
+        btn->pressed = FALSE;
+        return TRUE;
+    }
+    return FALSE;
+}
 
 void addBullet(float x, float y, float dy) {
   int found = -1;
@@ -98,7 +138,7 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
     }
     if (state[SDL_SCANCODE_UP]) {
       if (dog->y - 3 < 300){
-          dog->y = 60;
+          dog->y = 300;
       }
       else {
           dog->y -= 3;
@@ -135,8 +175,7 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
 
     return done;
 }
-
-void doRender(SDL_Renderer *renderer, Man *man, Man *dog)
+ void doRender(SDL_Renderer *renderer, Man *man, Man *dog)
 {
   //set the drawing color to blue
   SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
@@ -197,6 +236,73 @@ void updateLogic(Man *dog) {
 
 int main()
 {
+int quit = 0;
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window *window = NULL;
+    window = SDL_CreateWindow("",350, 150, 200, 200,    SDL_WINDOW_SHOWN);
+    if (window == NULL){
+        fprintf(stderr, "create window failed: %s\n", SDL_GetError());
+        return 1;   // 'error' return status is !0. 1 is good enough
+    }
+
+    SDL_Renderer *renderer = NULL;
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if(!renderer) {   // renderer creation may fail too
+        fprintf(stderr, "create renderer failed: %s\n", SDL_GetError());
+        return 1;
+    }
+ 
+   // SDL_Texture* txt = NULL;
+
+    SDL_Rect rct;
+    rct.x = 0 ;
+    rct.y = 0;
+    rct.h = 600;
+    rct.w = 600;
+
+    // button state - colour and rectangle
+    button_t start_button = {
+        .colour = { .r = 255, .g = 255, .b = 255, .a = 255, },
+        .draw_rect = { .x = 128, .y = 128, .w = 128, .h = 128 },
+    };
+
+    enum {
+        STATE_IN_MENU,
+        STATE_IN_GAME,
+    } state = 0;
+
+    while(!quit) {
+        SDL_Event evt;    // no need for new/delete, stack is fine
+
+        // event loop and draw loop are separate things, don't mix them
+        while(SDL_PollEvent(&evt)) {
+            // quit on close, window close, or 'escape' key hit
+            if(evt.type == SDL_QUIT ||
+                    (evt.type == SDL_WINDOWEVENT && evt.window.event == SDL_WINDOWEVENT_CLOSE) ||
+                    (evt.type == SDL_KEYDOWN && evt.key.keysym.sym == SDLK_ESCAPE)) {
+                quit = 1;
+            }
+
+            // pass event to button
+            button_process_event(&start_button, &evt);
+        }
+
+         SDL_SetRenderDrawColor(renderer, 255,0, 0, 255);
+        SDL_RenderClear(renderer);
+
+        SDL_RenderPresent(renderer);
+
+//      SDL_RenderCopy(renderer, txt, NULL, &rct);
+ if(state == STATE_IN_MENU) {
+            //    printf("start button pressed\n");
+                state = STATE_IN_GAME;   // state change - button will not be drawn anymore
+            
+        } else if(state == STATE_IN_GAME) {
+          if(button(renderer, &start_button)) {
+            
+            /* your game logic */
+          
+   
   SDL_Window *window;                    // Declare a window
   SDL_Renderer *renderer;                // Declare a renderer
   
@@ -303,10 +409,12 @@ int main()
   SDL_DestroyTexture(backgroundTexture);
   SDL_DestroyTexture(bulletTexture);
   SDL_DestroyTexture(dog.sheetTexture);
-  
+
+}
+}
   for(int i = 0; i < MAX_BULLETS; i++)
     removeBullet(i);
-  
+  }
   // Clean up
   SDL_Quit();
   return 0;
