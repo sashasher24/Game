@@ -87,11 +87,11 @@ int processEvents(SDL_Window *window, Rocket *rocket, Rocket *dog) {
     
   if (state[SDL_SCANCODE_LEFT]) {
     dog->x -= 2;
-    if (dog->x < -30) dog->x = WINDOW_WIDTH - 60;
+    if (dog->x - 2 < 0) dog->x = 0;
   }
   if (state[SDL_SCANCODE_RIGHT]) {
+    if (dog->x + 2 > WINDOW_WIDTH - 60) dog->x = WINDOW_WIDTH - 60;
     dog->x += 2;
-    if (dog->x > WINDOW_WIDTH) dog->x = -30;
   }
   if (state[SDL_SCANCODE_UP]) {
     if (dog->y - 2 < 405) {
@@ -111,19 +111,15 @@ int processEvents(SDL_Window *window, Rocket *rocket, Rocket *dog) {
   }
     
   if (rocket->x >= -60) {
-    rocket->x += 1;
-  
-    int k = rand() % 320;
-    int m = rand() % 320;
-    int h = rand() % 100;
-    int t = rand() % 50;
-      
-    if (rocket->x == k || rocket->x == m || rocket->x == h || rocket->x == t ) {
-      addBullet(rocket->x, rocket-> y+70, 3);
-      rocket->shooting = 1;
+    rocket->x += 2;
+
+    int a = rand() % 800;
+    if (a % 13 == 0) {
+	addBullet(rocket->x, rocket->y + 70, 3);
+	rocket->shooting = 1;
     }
     if (rocket->x == WINDOW_WIDTH + 60) {
-      rocket->x = -40;
+	rocket->x = -60;
     }
   }
   return done;
@@ -158,8 +154,33 @@ void updateLogic(Rocket *dog) {
       objects[i]->y += objects[i]->dy; 
       if(objects[i]->x >= dog->x && objects[i]->x <= dog->x+40 &&
             objects[i]->y >= dog->y && objects[i]->y <= dog->y+60) {
-        done = 1;
-	      printf("Game Over\n");
+//	done = 1;
+	SDL_Window *window_end = SDL_CreateWindow("game over",
+                        SDL_WINDOWPOS_UNDEFINED,
+                        SDL_WINDOWPOS_UNDEFINED,
+                        500,
+                        500,
+                        SDL_WINDOW_SHOWN);
+	if (window_end == NULL) {
+	    fprintf(stderr, "create window failed: %s\n", SDL_GetError());
+	    exit(1);
+	}
+	SDL_Renderer *renderer_end = SDL_CreateRenderer(window_end, -1, SDL_RENDERER_ACCELERATED);
+	if (!renderer_end) {
+	    fprintf(stderr, "create renderer failed: %s\n", SDL_GetError());
+    	    exit(1);
+	}
+	SDL_Surface *end_surface = IMG_Load("./resource/game_ov.jpg");
+	if (!end_surface) {
+	    printf("cannot find picture\n");
+    	    exit(1);
+	}
+	SDL_Texture *end_texture = SDL_CreateTextureFromSurface(renderer_end, end_surface);
+	SDL_FreeSurface(end_surface);
+	SDL_RenderCopy(renderer_end, end_texture, NULL, NULL);
+	SDL_RenderPresent(renderer_end);
+//	done = 1;
+	done = 2;
       }
       if(objects[i]->x == dog->x || objects[i]->x > 1000) {
         removeBullet(i);
@@ -173,7 +194,7 @@ int main() {
   int quit = 0;
   SDL_Init(SDL_INIT_VIDEO);
   SDL_Window *window1 = NULL;
-  window1 = SDL_CreateWindow("",
+  window1 = SDL_CreateWindow("start",
 			SDL_WINDOWPOS_UNDEFINED,
 			SDL_WINDOWPOS_UNDEFINED,
 			500,
@@ -250,7 +271,7 @@ int main() {
           dog.x = 350;
           dog.y = 420;
   
-          window = SDL_CreateWindow("Game Window",
+          window = SDL_CreateWindow("Our Game",
                                     SDL_WINDOWPOS_UNDEFINED,
                                     SDL_WINDOWPOS_UNDEFINED,
                                     WINDOW_WIDTH,
@@ -292,6 +313,7 @@ int main() {
           done = 0;
 
           while (!done) {
+	    if (done == 2) done = 1;
             done = processEvents(window, &rocket, &dog);
             updateLogic(&dog);
             doRender(renderer, &rocket, &dog);
