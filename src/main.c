@@ -190,19 +190,14 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
   SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);
 
   //warrior
-  if (man->visible) {
-    SDL_Rect srcRect = { 40*man->currentSprite, 0, 40, 50 };
     SDL_Rect rect = { man->x, man->y, 40, 50 };
-    SDL_RenderCopyEx(renderer, man->sheetTexture, &srcRect, &rect, 0, NULL, man->facingLeft);
-  }
+    SDL_RenderCopy(renderer, man->sheetTexture, NULL, &rect);
 
   //enemy
-  if (dog->visible) {
-     SDL_Rect eSrcRect = { 40, 0, 40, 60 };
-   // SDL_Rect eSrcRect = { 40*enemy.currentSprite, 0, 40, 50 };  
+  
     SDL_Rect eRect = { dog->x, dog->y, 40, 60 };  
-    SDL_RenderCopyEx(renderer, dog->sheetTexture, &eSrcRect, &eRect, 0, NULL, dog->facingLeft);
-  }
+    SDL_RenderCopy(renderer, dog->sheetTexture, NULL, &eRect);
+
  for (int i = 0; i < MAX_BULLETS; i++) if(bullets[i]) {
     SDL_Rect rect = { bullets[i]->x, bullets[i]->y, 8, 8 };
     SDL_RenderCopy(renderer, bulletTexture, NULL, &rect);
@@ -212,23 +207,28 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
   SDL_RenderPresent(renderer);
 }
 
-void updateLogic(Man *dog) {
-
+void updateLogic(Man *dog) {	
+	int k = 0;
+	int count;
   for(int i = 0; i < MAX_BULLETS; i++) {
     if(bullets[i]) {
       bullets[i]->y += bullets[i]->dy;
       
       //simple coll. detection
         
-      if(bullets[i]->x > dog->x && bullets[i]->x < dog->x+40 &&
-        bullets[i]->y > dog->y && bullets[i]->y < dog->y+50)
+      if(bullets[i]->x >= dog->x && bullets[i]->x <= dog->x+40 &&
+       bullets[i]->y >= dog->y && bullets[i]->y <= dog->y+60)
       {
-        dog->alive = 0;           // вот тут добавляем очки а не вот это гавно
+        k++;
+	count = k/32;
+	removeBullet(i);           // вот тут добавляем очки а не вот это гавно
       }
+
       
-      if(bullets[i]->x < -1000 || bullets[i]->x > 1000)
+      if(bullets[i]->x == dog->x || bullets[i]->x > 1000)
         removeBullet(i);
     }
+  //  printf("%d", count);
   }
     
   globalTime++;
