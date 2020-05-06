@@ -20,6 +20,7 @@ typedef struct {
     bool pressed;
 } button_t;
 
+int done;
 
 typedef struct {
   float x, y, dy;
@@ -95,7 +96,7 @@ void removeBullet(int i) {
 
 int processEvents(SDL_Window *window, Man *man, Man *dog) {
   SDL_Event event;
-  int done = 0;
+  done = 0;
 
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
@@ -175,8 +176,8 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
 
     return done;
 }
- void doRender(SDL_Renderer *renderer, Man *man, Man *dog)
-{
+
+void doRender(SDL_Renderer *renderer, Man *man, Man *dog) {
   //set the drawing color to blue
   SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
   
@@ -208,8 +209,8 @@ int processEvents(SDL_Window *window, Man *man, Man *dog) {
 }
 
 void updateLogic(Man *dog) {	
-	int k = 0;
-	int count;
+//	int k = 0;
+//	int count;
   for(int i = 0; i < MAX_BULLETS; i++) {
     if(bullets[i]) {
       bullets[i]->y += bullets[i]->dy;
@@ -219,9 +220,8 @@ void updateLogic(Man *dog) {
       if(bullets[i]->x >= dog->x && bullets[i]->x <= dog->x+40 &&
        bullets[i]->y >= dog->y && bullets[i]->y <= dog->y+60)
       {
-        k++;
-	count = k/32;
-	removeBullet(i);           // вот тут добавляем очки а не вот это гавно
+        done = 1;           // вот тут добавляем очки а не вот это гавно
+        printf("Game Over");
       }
 
       
@@ -383,8 +383,9 @@ int quit = 0;
   SDL_FreeSurface(bullet);
   
   // The window is open: enter program loop (see SDL_PollEvent)
-  int done = 0;
-  
+//  int done = 0;
+  done = 0;
+
   //Event loop
   while(!done)
   {
