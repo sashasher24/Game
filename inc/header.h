@@ -15,27 +15,23 @@
 #include <SDL2_image/SDL_image.h>
 
 typedef struct {
-    SDL_Rect draw_rect;    // dimensions of button
-    struct {
-        Uint8 r, g, b, a;
-    } colour;
+  SDL_Rect draw_rect;    // dimensions of button
+  struct {
+    Uint8 r, g, b, a;
+  } colour;
 
-    bool pressed;
+  bool pressed;
 } button_t;
 
-typedef struct
-{
+typedef struct {
   float x, y, dy;
   short life;
-  char *name;
-  int currentSprite, walking, facingLeft, shooting, visible;
-  int alive;
+  int walking;
   
   SDL_Texture *sheetTexture;
 } Man;
 
-typedef struct
-{
+typedef struct {
   float x, y, dy;
 } Bullet;
 
