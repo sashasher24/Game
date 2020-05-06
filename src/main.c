@@ -185,7 +185,7 @@ void updateLogic(Man *dog) {
       if(bullets[i]->x >= dog->x && bullets[i]->x <= dog->x+40 &&
        bullets[i]->y >= dog->y && bullets[i]->y <= dog->y+60) {
         done = 1;
-	printf("Game Over");
+	printf("Game Over\n");
       }
 
       
@@ -202,16 +202,16 @@ int main()
 {
 int quit = 0;
     SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window *window = NULL;
-    window = SDL_CreateWindow("", 200, 150, 200, 200, SDL_WINDOW_SHOWN);
-    if (window == NULL){
+    SDL_Window *window1 = NULL;
+    window1 = SDL_CreateWindow("", 200, 150, 200, 200, SDL_WINDOW_SHOWN);
+    if (window1 == NULL){
         fprintf(stderr, "create window failed: %s\n", SDL_GetError());
         return 1;   // 'error' return status is !0. 1 is good enough
     }
 
-    SDL_Renderer *renderer = NULL;
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if(!renderer) {   // renderer creation may fail too
+    SDL_Renderer *renderer1 = NULL;
+    renderer1 = SDL_CreateRenderer(window1, -1, SDL_RENDERER_ACCELERATED);
+    if(!renderer1) {   // renderer creation may fail too
         fprintf(stderr, "create renderer failed: %s\n", SDL_GetError());
         return 1;
     }
@@ -237,7 +237,7 @@ int quit = 0;
 
     while(!quit) {
         SDL_Event evt;    // no need for new/delete, stack is fine
-
+	if (done == 1) quit = 1;
         // event loop and draw loop are separate things, don't mix them
         while(SDL_PollEvent(&evt)) {
             // quit on close, window close, or 'escape' key hit
@@ -251,19 +251,21 @@ int quit = 0;
             button_process_event(&start_button, &evt);
         }
 
-         SDL_SetRenderDrawColor(renderer, 255,0, 0, 255);
-        SDL_RenderClear(renderer);
+         SDL_SetRenderDrawColor(renderer1, 255,0, 0, 255);
+        SDL_RenderClear(renderer1);
 
-        SDL_RenderPresent(renderer);
+        SDL_RenderPresent(renderer1);
 
-//      SDL_RenderCopy(renderer, txt, NULL, &rct);
+//      SDL_RenderCopy(renderer1, txt, NULL, &rct);
  if(state == STATE_IN_MENU) {
             //    printf("start button pressed\n");
                 state = STATE_IN_GAME;   // state change - button will not be drawn anymore
             
         } else if(state == STATE_IN_GAME) {
-          if(button(renderer, &start_button)) {
+          if(button(renderer1, &start_button)) {
             
+SDL_DestroyWindow(window1);
+SDL_DestroyRenderer(renderer1);
             /* your game logic */
           
    
